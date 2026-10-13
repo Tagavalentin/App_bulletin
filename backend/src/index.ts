@@ -7,6 +7,7 @@ import classeRoutes from './routes/classeRoutes';
 import matiereRoutes from './routes/matiereRoutes';
 import eleveRoutes from './routes/eleveRoutes';
 import noteRoutes from './routes/noteRoutes';
+import bulletinRoutes from './routes/bulletinRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/api/classes', classeRoutes);
 app.use('/api/matieres', matiereRoutes);
 app.use('/api/eleves', eleveRoutes);
 app.use('/api/notes', noteRoutes);
+app.use('/api/bulletins', bulletinRoutes);
 
 // Démarrer le serveur
 app.listen(PORT, () => {

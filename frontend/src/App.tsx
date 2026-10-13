@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import BulletinPreview from './components/BulletinPreview';
 import './App.css';
 
 interface Eleve {
@@ -30,6 +31,9 @@ function App() {
   const [notes, setNotes] = useState<Record<string, { moyenne_classe: number; note_composition: number }>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [view, setView] = useState<'saisie' | 'bulletin'>('saisie');
+  const [bulletinData, setBulletinData] = useState<any>(null);
+  const [selectedEleve, setSelectedEleve] = useState<number>(1);
 
   useEffect(() => {
     loadData();
@@ -47,6 +51,9 @@ function App() {
       
       setEleves(elevesData);
       setMatieres(matieresData);
+      if (elevesData.length > 0) {
+        setSelectedEleve(elevesData[0].id);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
     }
@@ -99,6 +106,46 @@ function App() {
     }
   };
 
+  const handleGenerateBulletin = async () => {
+    setLoading(true);
+    setMessage('');
+    
+    try {
+      const response = await fetch(`http://localhost:3000/api/bulletins/eleve/${selectedEleve}/trimestre/${trimestre}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setBulletinData(data);
+        setView('bulletin');
+      } else {
+        setMessage(`Erreur: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('Erreur lors de la génération du bulletin');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (view === 'bulletin' && bulletinData) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-800">Bulletin Scolaire</h1>
+            <button
+              onClick={() => setView('saisie')}
+              className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700"
+            >
+              Retour à la saisie
+            </button>
+          </div>
+          <BulletinPreview data={bulletinData} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
@@ -128,6 +175,20 @@ function App() {
                 {matieres.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.nom} (Coef: {m.coefficient})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Élève pour bulletin</label>
+              <select
+                value={selectedEleve}
+                onChange={(e) => setSelectedEleve(parseInt(e.target.value))}
+                className="w-full border border-gray-300 rounded-md p-2"
+              >
+                {eleves.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nom} {e.prenoms}
                   </option>
                 ))}
               </select>
@@ -188,13 +249,22 @@ function App() {
             <div className="text-sm text-gray-600">
               {eleves.length} élève(s)
             </div>
-            <button
-              onClick={handleSave}
-              disabled={loading}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {loading ? 'Enregistrement...' : 'Enregistrer les notes'}
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={handleGenerateBulletin}
+                disabled={loading}
+                className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:bg-gray-400"
+              >
+                {loading ? 'Génération...' : 'Voir bulletin'}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                {loading ? 'Enregistrement...' : 'Enregistrer les notes'}
+              </button>
+            </div>
           </div>
 
           {message && (

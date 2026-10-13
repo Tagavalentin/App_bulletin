@@ -42,3 +42,9 @@ coverage/
 # Temporary
 tmp/
 temp/
+
+# Subdirectories (already have their own .gitignore)
+frontend/node_modules/
+backend/node_modules/
+frontend/dist/
+backend/dist/

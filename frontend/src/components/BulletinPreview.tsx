@@ -29,8 +29,40 @@ interface BulletinPreviewProps {
 const BulletinPreview: React.FC<BulletinPreviewProps> = ({ data }) => {
   const trimestreLibelle = data.trimestre === 1 ? 'PREMIER' : data.trimestre === 2 ? 'DEUXIEME' : 'TROISIEME';
 
+  const handleExportPDF = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/pdf/eleve/${data.eleve.id}/trimestre/${data.trimestre}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bulletin_T${data.trimestre}_${data.eleve.nom}_${data.eleve.prenoms}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Erreur lors de l\'export PDF');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de l\'export PDF');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto bg-white p-8 border-2 border-black">
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={handleExportPDF}
+          className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700"
+        >
+          Exporter en PDF
+        </button>
+      </div>
+      <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
       {/* En-tête */}
       <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
         <div>

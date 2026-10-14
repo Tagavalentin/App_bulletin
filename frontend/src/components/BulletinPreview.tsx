@@ -62,7 +62,6 @@ const BulletinPreview: React.FC<BulletinPreviewProps> = ({ data }) => {
           Exporter en PDF
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
       {/* En-tête */}
       <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
         <div>

@@ -22,6 +22,15 @@ interface Note {
   note_composition: number;
 }
 
+interface Etablissement {
+  nom: string;
+  sigle: string;
+  adresse: string;
+  telephones: string;
+  numero_agrement: string;
+  nom_proviseur: string;
+}
+
 function App() {
   const [eleves, setEleves] = useState<Eleve[]>([]);
   const [matieres, setMatieres] = useState<Matiere[]>([]);
@@ -31,12 +40,21 @@ function App() {
   const [notes, setNotes] = useState<Record<string, { moyenne_classe: number; note_composition: number }>>({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [view, setView] = useState<'saisie' | 'bulletin'>('saisie');
+  const [view, setView] = useState<'saisie' | 'bulletin' | 'parametres'>('saisie');
   const [bulletinData, setBulletinData] = useState<any>(null);
   const [selectedEleve, setSelectedEleve] = useState<number>(1);
+  const [etablissement, setEtablissement] = useState<Etablissement>({
+    nom: '',
+    sigle: '',
+    adresse: '',
+    telephones: '',
+    numero_agrement: '',
+    nom_proviseur: ''
+  });
 
   useEffect(() => {
     loadData();
+    loadEtablissement();
   }, [selectedClasse]);
 
   const loadData = async () => {
@@ -56,6 +74,18 @@ function App() {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
+    }
+  };
+
+  const loadEtablissement = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/etablissement');
+      const data = await response.json();
+      if (data) {
+        setEtablissement(data);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'établissement:', error);
     }
   };
 
@@ -127,6 +157,29 @@ function App() {
     }
   };
 
+  const handleSaveEtablissement = async () => {
+    setLoading(true);
+    setMessage('');
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/etablissement', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(etablissement)
+      });
+      
+      if (response.ok) {
+        setMessage('Paramètres de l\'établissement enregistrés avec succès');
+      } else {
+        setMessage('Erreur lors de l\'enregistrement');
+      }
+    } catch (error) {
+      setMessage('Erreur lors de l\'enregistrement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (view === 'bulletin' && bulletinData) {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
@@ -146,10 +199,111 @@ function App() {
     );
   }
 
+  if (view === 'parametres') {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-800">Paramètres de l'établissement</h1>
+            <button
+              onClick={() => setView('saisie')}
+              className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700"
+            >
+              Retour
+            </button>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'établissement</label>
+                <input
+                  type="text"
+                  value={etablissement.nom}
+                  onChange={(e) => setEtablissement({ ...etablissement, nom: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sigle</label>
+                <input
+                  type="text"
+                  value={etablissement.sigle}
+                  onChange={(e) => setEtablissement({ ...etablissement, sigle: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
+                <input
+                  type="text"
+                  value={etablissement.adresse}
+                  onChange={(e) => setEtablissement({ ...etablissement, adresse: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphones</label>
+                <input
+                  type="text"
+                  value={etablissement.telephones}
+                  onChange={(e) => setEtablissement({ ...etablissement, telephones: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Numéro d'agrément</label>
+                <input
+                  type="text"
+                  value={etablissement.numero_agrement}
+                  onChange={(e) => setEtablissement({ ...etablissement, numero_agrement: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nom du Proviseur/Fondateur</label>
+                <input
+                  type="text"
+                  value={etablissement.nom_proviseur}
+                  onChange={(e) => setEtablissement({ ...etablissement, nom_proviseur: e.target.value })}
+                  className="w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <button
+                onClick={handleSaveEtablissement}
+                disabled={loading}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                {loading ? 'Enregistrement...' : 'Enregistrer'}
+              </button>
+            </div>
+            
+            {message && (
+              <div className={`mt-4 p-3 rounded-md ${message.includes('succès') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {message}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Saisie des Notes - Bulletins Scolaires Togo</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Saisie des Notes - Bulletins Scolaires Togo</h1>
+          <button
+            onClick={() => setView('parametres')}
+            className="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700"
+          >
+            Paramètres
+          </button>
+        </div>
         
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="grid grid-cols-3 gap-4 mb-4">
